@@ -16,7 +16,7 @@
 import Data.List (transpose, intersperse)
 
 
---data Board = Board { [Int] :: First, Second :: [Int], Third :: [Int]
+--data Board = Board { First :: [Int], Second :: [Int], Third :: [Int] }
 data Board = Board [Int] [Int] [Int]
 data Peg = First | Second | Third deriving (Show, Read)
 
@@ -42,37 +42,53 @@ createGame n = Board [1..n] [] []
 -- Moves a disk between two pegs
 -- TODO - Refactoring, clarify, comment
 move :: Peg -> Peg -> Board -> Board
-move pFrom pTo board = setPeg pTo (head from : to) . setPeg pFrom (tail from) $ board
---move board pFrom pTo = setPeg (setPeg board pTo (head from : to)) pFrom (tail from)
+move frPeg toPeg board = setPeg toPeg (head from : to) . setPeg frPeg (tail from) $ board
+--move board frPeg toPeg = setPeg (setPeg board toPeg (head from : to)) frPeg (tail from)
   where
-  	from = choosePeg board pFrom
-  	to = choosePeg board pTo
+  	from = choosePeg board frPeg
+  	to = choosePeg board toPeg
 
 
 -- Checks if a particular move is valid
 isValid :: Board -> Peg -> Peg -> Bool
-isValid board pFrom pTo = (null to) || (head from < head to)
+isValid board frPeg toPeg = (null to) || (head from < head to)
   where
-  	from = choosePeg board pFrom
-  	to = choosePeg board pTo
+  	from = choosePeg board frPeg
+  	to = choosePeg board toPeg
 
 
 
 -- A board is completed when the first two pegs are empty and the third 
 hasWon :: Board -> Bool
-hasWon (Board a b c) = null a && null b and isSorted c
+hasWon (Board a b c) = null a && null b && isSorted c
   where
   	isSorted xs = all (uncurry (<=)) $ zip xs (tail xs)
 
 
+
+--
+padLeft :: Int -> a -> [a] -> [a]
+padLeft sz fill xs = replicate (sz - length xs) fill ++ xs
+
+
+-- Prompt the user to choose two pegs
+-- TODO - Refactor with do notation (?)
+askMove :: IO (Peg, Peg)
+askMove = putStrLn "From: " >> getLine >>= (return . read) >>= (\str -> putStrLn "To: " >> return str) >>= (\str -> return (str,)) >>= (read . getLine)
+
+
 instance Show Board where
 	--show (Board a b c) = concat $ zipWith3 (\ a b c -> intersperse ' ' $ a:b:c:"\n") (concat . map show $ a) (concat . map show $ b) (concat . map show $ c)
-	show (Board a b c) = concat . map ((++"\n") . intersperse ' ') . transpose $ map (concat . map show) [a,b,c]
+	show (Board a b c) = concat . map ((++"\n") . intersperse ' ') . transpose $ map (padLeft size '.' . concat . map show) [a,b,c]
+		where
+			size = maximum . map length $ [a,b,c]
+
 
 
 main :: IO ()
 main = do
 	putStrLn "Hello World"
 	--print $ createGame 5
-	print $ Board [1..5] [1..5] [1..5]
-	print $ isValid (Board [1..5] [1..5] [1..5]) First First
+	print $ Board [1..5] [] [1..3]
+	print $ isValid (Board [1..5] [] []) First First
+	print $ hasWon (Board [] [] [1..5])
