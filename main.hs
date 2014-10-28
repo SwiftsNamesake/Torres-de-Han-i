@@ -29,10 +29,10 @@ choosePeg (Board _ _ c) Third 	= c
 
 
 --
-setPeg :: Board -> Peg -> [Int] -> Board
-setPeg (Board a b c) First disks 	= Board disks b c
-setPeg (Board a b c) Second disks 	= Board a disks c
-setPeg (Board a b c) Third disks 	= Board a b disks
+setPeg :: Peg -> [Int] -> Board -> Board
+setPeg First disks (Board a b c) 	= Board disks b c
+setPeg Second disks (Board a b c) 	= Board a disks c
+setPeg Third disks (Board a b c) 	= Board a b disks
 
 -- 
 createGame :: Int -> Board
@@ -42,7 +42,8 @@ createGame n = Board [1..n] [] []
 -- Moves a disk between two pegs
 -- TODO - Refactoring, clarify, comment
 move :: Peg -> Peg -> Board -> Board
-move board pFrom pTo = setPeg (setPeg board pTo (head from : to)) pFrom (tail from)
+move pFrom pTo board = setPeg pTo (head from : to) . setPeg pFrom (tail from) $ board
+--move board pFrom pTo = setPeg (setPeg board pTo (head from : to)) pFrom (tail from)
   where
   	from = choosePeg board pFrom
   	to = choosePeg board pTo
