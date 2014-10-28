@@ -40,8 +40,9 @@ createGame n = Board [1..n] [] []
 
 
 -- Moves a disk between two pegs
-move :: Board -> Peg -> Peg -> Board
-move board pFrom pTo = setPeg board pTo (head from : to)
+-- TODO - Refactoring, clarify, comment
+move :: Peg -> Peg -> Board -> Board
+move board pFrom pTo = setPeg (setPeg board pTo (head from : to)) pFrom (tail from)
   where
   	from = choosePeg board pFrom
   	to = choosePeg board pTo
