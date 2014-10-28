@@ -57,6 +57,14 @@ isValid board pFrom pTo = (null to) || (head from < head to)
   	to = choosePeg board pTo
 
 
+
+-- A board is completed when the first two pegs are empty and the third 
+hasWon :: Board -> Bool
+hasWon (Board a b c) = null a && null b and isSorted c
+  where
+  	isSorted xs = all (uncurry (<=)) $ zip xs (tail xs)
+
+
 instance Show Board where
 	--show (Board a b c) = concat $ zipWith3 (\ a b c -> intersperse ' ' $ a:b:c:"\n") (concat . map show $ a) (concat . map show $ b) (concat . map show $ c)
 	show (Board a b c) = concat . map ((++"\n") . intersperse ' ') . transpose $ map (concat . map show) [a,b,c]
