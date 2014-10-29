@@ -17,6 +17,10 @@
 import Data.List (transpose, intersperse)
 
 
+-------------------------------------------------------------------------
+-- Game logic (pure)
+-------------------------------------------------------------------------
+
 --data Board = Board { First :: [Int], Second :: [Int], Third :: [Int] }
 data Board = Board [Int] [Int] [Int]
 data Peg = First | Second | Third deriving (Show, Read)
@@ -50,6 +54,11 @@ move frPeg toPeg board = setPeg toPeg (head from : to) . setPeg frPeg (tail from
   	to = choosePeg board toPeg
 
 
+-- Moves a disk between two pegs if the 
+moveSafe :: Peg -> Peg -> Board -> Board
+moveSafe frPeg toPeg board = if isValid board frPeg toPeg then move frPeg toPeg board else board
+
+
 -- Checks if a particular move is valid
 isValid :: Board -> Peg -> Peg -> Bool
 isValid board frPeg toPeg = (null to) || (head from < head to)
@@ -72,21 +81,55 @@ padLeft :: Int -> a -> [a] -> [a]
 padLeft sz fill xs = replicate (sz - length xs) fill ++ xs
 
 
--- Prompt the user to choose two pegs
--- TODO - Refactor with do notation (?)
--- TODO - Separate polymorphic prompt function (?)
-askMove :: IO (Peg, Peg)
-askMove = putStrLn "From: " >> getLine >>= return . read >>= (\str -> putStrLn "To: " >> return str) >>= (\ str -> getLine >>= (\ nxt -> return (str, read nxt) ))
-
-
+--
 instance Show Board where
 	--show (Board a b c) = concat $ zipWith3 (1 a b c -> intersperse ' ' $ a:b:c:"\n") (concat . map show $ a) (concat . map show $ b) (concat . map show $ c)
 	show (Board a b c) = concat . map ((++"\n") . intersperse ' ') . transpose $ map (padLeft size '.' . concat . map show) [a,b,c]
 		where
 			size = maximum . map length $ [a,b,c]
+			--size = head . sortBy length $ [a,b,c]
 
 
+-- Num instance for string
+-- readValue :: Read a => IO a
+-- Handling invalid input, wrapping exceptions
 
+
+-------------------------------------------------------------------------
+-- Interaction (impure)
+-------------------------------------------------------------------------
+
+-- Prompt the user to choose two pegs
+-- TODO - Refactor with do notation (?)
+-- TODO - Separate polymorphic prompt function (?)
+askMove :: IO (Peg, Peg)
+askMove = 	putStr "From: " >> 						-- Prompt user for first choice (from)
+			getLine >>= 							-- Read the choice as a string
+			(\fr -> putStr "To: " >> return fr) >>= -- Prompt user for second choice (to)
+			(\ fr -> getLine >>= (\ toStr -> return (read fr, read toStr) ))
+
+
+--
+doAskMove :: IO (Peg, Peg)
+doAskMove = do
+	putStr "From: "	-- 
+	fr <- getLine	--
+	putStr "To: "	--
+	to <- getLine	--
+	return (read fr, read to) -- 
+
+
+--
+-- TODO | recursive implementation in main (?)
+-- TODO | Implement as pure function (strip away IO) (?)
+-- eg. run :: Board -> [(Peg, Peg)] -> Board
+run :: IO ()
+run = until hasWon (\ board -> print board >> askMove >>= (\ (fr, to) -> moveSafe fr to board)) $ Board [1..5] [] []
+
+
+-------------------------------------------------------------------------
+-- 
+-------------------------------------------------------------------------
 main :: IO ()
 main = do
 	putStrLn "Hello World"
@@ -94,3 +137,7 @@ main = do
 	print $ Board [1..5] [] [1..3]
 	print $ isValid (Board [1..5] [] []) First First
 	print $ hasWon (Board [] [] [1..5])
+	(fr, to) <- askMove
+	print fr
+	print to
+	return ()
