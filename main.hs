@@ -21,8 +21,6 @@
 --        -
 
 
--- {- -XTupleSections -}
-
 
 
 -------------------------------------------------------------------------
@@ -33,13 +31,14 @@ import Data.Char (ord)
 import System.IO (hFlush, stdout, hSetBuffering, BufferMode)
 
 
+
 -------------------------------------------------------------------------
 -- Game logic (pure)
 -------------------------------------------------------------------------
 
---data Board = Board { First :: [Int], Second :: [Int], Third :: [Int] }
 data Board = Board [Int] [Int] [Int]
 data Peg = First | Second | Third deriving (Show, Read)
+--data Board = Board { First :: [Int], Second :: [Int], Third :: [Int] }
 
 
 -- Retrieves the disk on the specified peg
@@ -64,7 +63,6 @@ createGame n = Board [1..n] [] []
 -- TODO - Refactor, clarify, comment
 move :: Peg -> Peg -> Board -> Board
 move frPeg toPeg board = setPeg toPeg (head from : to) . setPeg frPeg (tail from) $ board
---move board frPeg toPeg = setPeg (setPeg board toPeg (head from : to)) frPeg (tail from)
   where
   	from = choosePeg board frPeg
   	to = choosePeg board toPeg
@@ -100,32 +98,17 @@ padLeft sz fill xs = replicate (sz - length xs) fill ++ xs
 
 --
 instance Show Board where
-	--show (Board a b c) = concat $ zipWith3 (1 a b c -> intersperse ' ' $ a:b:c:"\n") (concat . map show $ a) (concat . map show $ b) (concat . map show $ c)
 	show (Board a b c) = concat . map ((++"\n") . intersperse ' ') . transpose $ map (padLeft size '.' . concat . map show) [a,b,c]
-		where
-			size = maximum . map length $ [a,b,c]
-			--size = head . sortBy length $ [a,b,c]
+		where size = maximum . map length $ [a,b,c]
 
-
--- Num instance for string
--- readValue :: Read a => IO a
--- Handling invalid input, wrapping exceptions
-instance Eq a => Num [a] where
-	(+) = (++)
-	(-) a b = filter (not . flip elem b) a
-	(*) a b = concat . map (replicate (length b)) $ a
-	abs = (:[]) . head
-	signum = abs
-	fromInteger = const []
-
-
-(<<|>>) :: String -> Int -> Int
-(<<|>>) a b = b + (sum . map ord $ a)
 
 
 -------------------------------------------------------------------------
 -- Interaction (impure)
 -------------------------------------------------------------------------
+
+-- TODO | readValue :: Read a => IO a
+-- TODO | Handling invalid input, wrapping exceptions
 
 -- Prompt the user to choose two pegs
 -- TODO - Refactor with do notation (?)
@@ -164,17 +147,27 @@ run board = do
 --run = return $ until hasWon (\ board -> print board >> askMove >>= (\ (fr, to) -> let (IO brd) = moveSafe fr to board in brd)) $ Board [1..5] [] []
 
 
+--
+runIOTests :: IO ()
+runIOTests = do
+	print $ createGame 5
+	print $ Board [1..5] [] [1..3]
+	print $ isValid First First (Board [1..5] [] [])
+	print $ hasWon (Board [] [] [1..5])
+	(fr, to) <- askMove
+	print fr
+	print to
+
+
+--
+runLogicTests :: IO ()
+runLogicTests = do
+	return ()
+
+
+
 -------------------------------------------------------------------------
--- 
+-- Entry point
 -------------------------------------------------------------------------
 main :: IO ()
-main = do
-	run $ Board [1..5] [] []
-	--print $ createGame 5
-	--print $ Board [1..5] [] [1..3]
-	--print $ isValid (Board [1..5] [] []) First First
-	--print $ hasWon (Board [] [] [1..5])
-	--(fr, to) <- askMove
-	--print fr
-	--print to
-	--return ()
+main = run $ Board [1..5] [] []
