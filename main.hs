@@ -76,11 +76,11 @@ padLeft sz fill xs = replicate (sz - length xs) fill ++ xs
 -- TODO - Refactor with do notation (?)
 -- TODO - Separate polymorphic prompt function (?)
 askMove :: IO (Peg, Peg)
-askMove = 	putStrLn "From: " >> getLine >>= fmap read >>= (\str -> putStrLn "To: " >> return str) >>= (\str -> return (str,)) >>= (read . getLine)
+askMove = putStrLn "From: " >> getLine >>= return . read >>= (\str -> putStrLn "To: " >> return str) >>= (\ str -> getLine >>= (\ nxt -> return (str, read nxt) ))
 
 
 instance Show Board where
-	--show (Board a b c) = concat $ zipWith3 (\ a b c -> intersperse ' ' $ a:b:c:"\n") (concat . map show $ a) (concat . map show $ b) (concat . map show $ c)
+	--show (Board a b c) = concat $ zipWith3 (1 a b c -> intersperse ' ' $ a:b:c:"\n") (concat . map show $ a) (concat . map show $ b) (concat . map show $ c)
 	show (Board a b c) = concat . map ((++"\n") . intersperse ' ') . transpose $ map (padLeft size '.' . concat . map show) [a,b,c]
 		where
 			size = maximum . map length $ [a,b,c]
