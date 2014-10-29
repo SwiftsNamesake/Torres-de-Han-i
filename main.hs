@@ -7,18 +7,26 @@
 --
 
 -- TODO | - More convenient representation (get rid of bloat)
+--        - Variable number of pegs
+--        - Solver, rules and instructions
 --        - GHC build options
 --        - Cabal
 --        - ASCII art comments and output
 --        - 3D
+--        - Save moves, undo feature
+--        - Colours, console cursor
+--        - Cheats
 
 -- SPEC | -
 --        -
 
-{- -XTupleSections -}
+
+-- {- -XTupleSections -}
+
 
 import Data.List (transpose, intersperse)
-import System.IO (hFlush, stdout)
+import Data.Char (ord)
+import System.IO (hFlush, stdout, hSetBuffering, BufferMode)
 
 
 -------------------------------------------------------------------------
@@ -49,7 +57,7 @@ createGame n = Board [1..n] [] []
 
 
 -- Moves a disk between two pegs
--- TODO - Refactoring, clarify, comment
+-- TODO - Refactor, clarify, comment
 move :: Peg -> Peg -> Board -> Board
 move frPeg toPeg board = setPeg toPeg (head from : to) . setPeg frPeg (tail from) $ board
 --move board frPeg toPeg = setPeg (setPeg board toPeg (head from : to)) frPeg (tail from)
@@ -98,7 +106,17 @@ instance Show Board where
 -- Num instance for string
 -- readValue :: Read a => IO a
 -- Handling invalid input, wrapping exceptions
+instance Eq a => Num [a] where
+	(+) = (++)
+	(-) a b = filter (not . flip elem b) a
+	(*) a b = concat . map (replicate (length b)) $ a
+	abs = (:[]) . head
+	signum = abs
+	fromInteger = const []
 
+
+(<<|>>) :: String -> Int -> Int
+(<<|>>) a b = b + (sum . map ord $ a)
 
 -------------------------------------------------------------------------
 -- Interaction (impure)
@@ -108,12 +126,12 @@ instance Show Board where
 -- TODO - Refactor with do notation (?)
 -- TODO - Separate polymorphic prompt function (?)
 askMove :: IO (Peg, Peg)
-askMove = 	putStr "From: " >> flush >>						-- Prompt user for first choice (from)
-			getLine >>= 							-- Read the choice as a string
-			(\fr -> putStr "To: " >> flush >> return fr) >>= -- Prompt user for second choice (to)
+askMove = 	putStrF "From: " >>							-- Prompt user for first choice (from)
+			getLine >>= 								-- Read the choice as a string
+			(\fr -> putStrF "To: " >> return fr) >>= 	-- Prompt user for second choice (to)
 			(\ fr -> getLine >>= (\ toStr -> return (read fr, read toStr) ))
 			  where
-			  	flush = hFlush stdout -- Line buffered in interactive mode
+			  	putStrF str = putStr str >> hFlush stdout -- Console is line buffered in interactive mode
 
 
 --
