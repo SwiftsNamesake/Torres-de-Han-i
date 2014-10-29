@@ -12,6 +12,7 @@
 -- SPEC | -
 --        -
 
+{- -XTupleSections -}
 
 import Data.List (transpose, intersperse)
 
@@ -73,8 +74,9 @@ padLeft sz fill xs = replicate (sz - length xs) fill ++ xs
 
 -- Prompt the user to choose two pegs
 -- TODO - Refactor with do notation (?)
+-- TODO - Separate polymorphic prompt function (?)
 askMove :: IO (Peg, Peg)
-askMove = putStrLn "From: " >> getLine >>= (return . read) >>= (\str -> putStrLn "To: " >> return str) >>= (\str -> return (str,)) >>= (read . getLine)
+askMove = 	putStrLn "From: " >> getLine >>= fmap read >>= (\str -> putStrLn "To: " >> return str) >>= (\str -> return (str,)) >>= (read . getLine)
 
 
 instance Show Board where
