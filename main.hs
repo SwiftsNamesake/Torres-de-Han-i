@@ -16,6 +16,7 @@
 --        - Save moves, undo feature
 --        - Colours, console cursor
 --        - Cheats
+--        - Gamestate and options type (score, size, etc.)
 
 -- SPEC | -
 --        -
@@ -29,7 +30,7 @@
 import Data.List (transpose, intersperse)
 import Data.Char (ord)
 import System.IO (hFlush, stdout, hSetBuffering, BufferMode)
-
+import System.Console.ANSI
 
 
 -------------------------------------------------------------------------
@@ -99,7 +100,9 @@ padLeft sz fill xs = replicate (sz - length xs) fill ++ xs
 --
 instance Show Board where
 	show (Board a b c) = concat . map ((++"\n") . intersperse ' ') . transpose $ map (padLeft size '.' . concat . map show) [a,b,c]
-		where size = maximum . map length $ [a,b,c]
+		where
+			--size = maximum . map length $ [a,b,c]
+			size = maximum $ a ++ b ++ c
 
 
 
@@ -139,12 +142,13 @@ doAskMove = do
 -- eg. run :: Board -> [(Peg, Peg)] -> Board
 run :: Board -> IO ()
 run board = do
+	clearScreen
+	setCursorPosition 0 0
 	print board
-	putStrLn "Next move..."
 	(fr, to) <- askMove
-	let next = moveSafe fr to board
-	if not $ hasWon board then run next else return ()
+	let next = moveSafe fr to board in if not $ hasWon next then run next else clearScreen >> setCursorPosition 0 0 >> print next
 	putStrLn "Hurrah, you've won!"
+
 --run = return $ until hasWon (\ board -> print board >> askMove >>= (\ (fr, to) -> let (IO brd) = moveSafe fr to board in brd)) $ Board [1..5] [] []
 
 
