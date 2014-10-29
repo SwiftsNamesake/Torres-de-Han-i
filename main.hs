@@ -24,6 +24,10 @@
 -- {- -XTupleSections -}
 
 
+
+-------------------------------------------------------------------------
+-- We'll need these
+-------------------------------------------------------------------------
 import Data.List (transpose, intersperse)
 import Data.Char (ord)
 import System.IO (hFlush, stdout, hSetBuffering, BufferMode)
@@ -117,6 +121,7 @@ instance Eq a => Num [a] where
 
 (<<|>>) :: String -> Int -> Int
 (<<|>>) a b = b + (sum . map ord $ a)
+
 
 -------------------------------------------------------------------------
 -- Interaction (impure)
