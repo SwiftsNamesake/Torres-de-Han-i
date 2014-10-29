@@ -7,7 +7,10 @@
 --
 
 -- TODO | - More convenient representation (get rid of bloat)
---        -
+--        - GHC build options
+--        - Cabal
+--        - ASCII art comments and output
+--        - 3D
 
 -- SPEC | -
 --        -
@@ -57,12 +60,12 @@ move frPeg toPeg board = setPeg toPeg (head from : to) . setPeg frPeg (tail from
 -- Moves a disk between two pegs if the 
 -- TODO | Signal sucess, Maybe monad (?)
 moveSafe :: Peg -> Peg -> Board -> Board
-moveSafe frPeg toPeg board = if isValid board frPeg toPeg then move frPeg toPeg board else board
+moveSafe frPeg toPeg board = if isValid frPeg toPeg board then move frPeg toPeg board else board
 
 
 -- Checks if a particular move is valid
-isValid :: Board -> Peg -> Peg -> Bool
-isValid board frPeg toPeg = (null to) || (head from < head to)
+isValid :: Peg -> Peg -> Board -> Bool
+isValid frPeg toPeg board = (null to) || (head from < head to)
   where
   	from = choosePeg board frPeg
   	to = choosePeg board toPeg
@@ -113,10 +116,10 @@ askMove = 	putStr "From: " >> 						-- Prompt user for first choice (from)
 --
 doAskMove :: IO (Peg, Peg)
 doAskMove = do
-	putStr "From: "	-- 
-	fr <- getLine	--
-	putStr "To: "	--
-	to <- getLine	--
+	putStr "From: "	-- Prompt user for first choice (from)
+	fr <- getLine	-- Read the choice as a string
+	putStr "To: "	-- Prompt user for second choice (to)
+	to <- getLine	-- Read the choice as a string
 	return (read fr, read to) -- 
 
 
