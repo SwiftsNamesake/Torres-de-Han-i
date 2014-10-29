@@ -55,6 +55,7 @@ move frPeg toPeg board = setPeg toPeg (head from : to) . setPeg frPeg (tail from
 
 
 -- Moves a disk between two pegs if the 
+-- TODO | Signal sucess, Maybe monad (?)
 moveSafe :: Peg -> Peg -> Board -> Board
 moveSafe frPeg toPeg board = if isValid board frPeg toPeg then move frPeg toPeg board else board
 
@@ -122,9 +123,15 @@ doAskMove = do
 --
 -- TODO | recursive implementation in main (?)
 -- TODO | Implement as pure function (strip away IO) (?)
+-- or take IO actions as callbacks for greater flexibility
 -- eg. run :: Board -> [(Peg, Peg)] -> Board
-run :: IO ()
-run = until hasWon (\ board -> print board >> askMove >>= (\ (fr, to) -> moveSafe fr to board)) $ Board [1..5] [] []
+run :: Board -> IO ()
+run board = do
+	print board
+	(fr, to) <- askMove
+	let next = moveSafe fr to board
+	if hasWon next then putStrLn "Hurrah, you've won!" else run next
+--run = return $ until hasWon (\ board -> print board >> askMove >>= (\ (fr, to) -> let (IO brd) = moveSafe fr to board in brd)) $ Board [1..5] [] []
 
 
 -------------------------------------------------------------------------
@@ -132,12 +139,12 @@ run = until hasWon (\ board -> print board >> askMove >>= (\ (fr, to) -> moveSaf
 -------------------------------------------------------------------------
 main :: IO ()
 main = do
-	putStrLn "Hello World"
+	run $ Board [1..5] [] []
 	--print $ createGame 5
-	print $ Board [1..5] [] [1..3]
-	print $ isValid (Board [1..5] [] []) First First
-	print $ hasWon (Board [] [] [1..5])
-	(fr, to) <- askMove
-	print fr
-	print to
-	return ()
+	--print $ Board [1..5] [] [1..3]
+	--print $ isValid (Board [1..5] [] []) First First
+	--print $ hasWon (Board [] [] [1..5])
+	--(fr, to) <- askMove
+	--print fr
+	--print to
+	--return ()
