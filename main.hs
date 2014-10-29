@@ -18,6 +18,7 @@
 {- -XTupleSections -}
 
 import Data.List (transpose, intersperse)
+import System.IO (hFlush, stdout)
 
 
 -------------------------------------------------------------------------
@@ -107,10 +108,12 @@ instance Show Board where
 -- TODO - Refactor with do notation (?)
 -- TODO - Separate polymorphic prompt function (?)
 askMove :: IO (Peg, Peg)
-askMove = 	putStr "From: " >> 						-- Prompt user for first choice (from)
+askMove = 	putStr "From: " >> flush >>						-- Prompt user for first choice (from)
 			getLine >>= 							-- Read the choice as a string
-			(\fr -> putStr "To: " >> return fr) >>= -- Prompt user for second choice (to)
+			(\fr -> putStr "To: " >> flush >> return fr) >>= -- Prompt user for second choice (to)
 			(\ fr -> getLine >>= (\ toStr -> return (read fr, read toStr) ))
+			  where
+			  	flush = hFlush stdout -- Line buffered in interactive mode
 
 
 --
@@ -131,6 +134,7 @@ doAskMove = do
 run :: Board -> IO ()
 run board = do
 	print board
+	putStrLn "Next move..."
 	(fr, to) <- askMove
 	let next = moveSafe fr to board
 	if hasWon next then putStrLn "Hurrah, you've won!" else run next
