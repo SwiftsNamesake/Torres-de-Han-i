@@ -22,18 +22,27 @@ module Render where
 -- We'll need these
 -------------------------------------------------------------------------
 import System.IO
-import Graphics.Rendering.OpenGL
-import Graphics.UI.GLUT
---import Graphics.Gloss
+import Graphics.Gloss
+
+
+
+-------------------------------------------------------------------------
+-- Utilities
+-------------------------------------------------------------------------
+π = pi
 
 
 
 -------------------------------------------------------------------------
 -- API
 -------------------------------------------------------------------------
-redraw :: DisplayCallback
-redraw = do return ()
+window :: Display
+window = InWindow "Gloss" (500, 500) (10, 10)
 
+
+mainGloss :: IO ()
+mainGloss = animate window white $ \ dt -> do
+	rotate (90 * (sin dt)) . scale (abs $ sin dt) (abs $ cos dt) . color (makeColor (abs . sin $ dt) (abs . cos $ dt) (1.0) (1.0)) $ rectangleSolid 178 235
 
 
 
@@ -41,7 +50,4 @@ redraw = do return ()
 -- Entry point
 -------------------------------------------------------------------------
 main :: IO ()
-main = do
-	createWindow "Torres de Hanoi"
-	displayCallback $= redraw
-	mainLoop
+main = mainGloss
