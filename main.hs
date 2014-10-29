@@ -143,7 +143,8 @@ run board = do
 	putStrLn "Next move..."
 	(fr, to) <- askMove
 	let next = moveSafe fr to board
-	if hasWon next then putStrLn "Hurrah, you've won!" else run next
+	if not $ hasWon board then run next else return ()
+	putStrLn "Hurrah, you've won!"
 --run = return $ until hasWon (\ board -> print board >> askMove >>= (\ (fr, to) -> let (IO brd) = moveSafe fr to board in brd)) $ Board [1..5] [] []
 
 
@@ -170,4 +171,4 @@ runLogicTests = do
 -- Entry point
 -------------------------------------------------------------------------
 main :: IO ()
-main = run $ Board [1..5] [] []
+main = run $ Board [] [1] [2..5] --Board [1..5] [] []
