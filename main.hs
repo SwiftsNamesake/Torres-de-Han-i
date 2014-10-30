@@ -127,21 +127,25 @@ askMove = 	putStrF "From: " >>							-- Prompt user for first choice (from)
 --
 doAskMove :: IO (Peg, Peg)
 doAskMove = do
-	putStr "From: "	-- Prompt user for first choice (from)
-	fr <- getLine	-- Read the choice as a string
-	putStr "To: "	-- Prompt user for second choice (to)
-	to <- getLine	-- Read the choice as a string
-	return (read fr, read to) -- 
+	--putStr "From: "	-- Prompt user for first choice (from)
+	--fr <- getLine	-- Read the choice as a string
+	--putStr "To: "	-- Prompt user for second choice (to)
+	--to <- getLine	-- Read the choice as a string
+	fr <- safeInput "From: "
+	to <- safeInput "To: "
+	return (fr, to) -- 
 
 
 --
 -- TODO | Generic prompt version
 -- TODO | See if Read instances implement validation function
+-- TODO | Error message (see askUntil in Python)
 safeInput :: String -> IO Peg
 safeInput prompt = do
 	putStr prompt
+	hFlush stdout
 	input <- getLine
-	if (input `elem` ["First", "Second", "Third"]) then return . read $ input else setCursorColumn 0 >> safeInput prompt
+	if (input `elem` ["First", "Second", "Third"]) then return . read $ input else setCursorColumn 0 >> cursorUpLine 1 >> clearLine >> safeInput prompt
 
 
 --
@@ -154,7 +158,7 @@ run board = do
 	clearScreen
 	setCursorPosition 0 0
 	print board
-	(fr, to) <- askMove
+	(fr, to) <- doAskMove
 	let next = moveSafe fr to board in if not $ hasWon next then run next else clearScreen >> setCursorPosition 0 0 >> print next
 	putStrLn "Hurrah, you've won!"
 
