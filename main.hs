@@ -174,4 +174,4 @@ runLogicTests = do
 -- Entry point
 -------------------------------------------------------------------------
 main :: IO ()
-main = run $ Board [] [1] [2..5] --Board [1..5] [] []
+main = run $ Board [1..5] [] []  -- Board [] [1] [2..5]
