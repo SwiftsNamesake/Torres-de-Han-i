@@ -38,7 +38,7 @@ import System.Console.ANSI
 -- Game logic (pure)
 -------------------------------------------------------------------------
 data Board = Board [Int] [Int] [Int]
-data Peg = First | Second | Third deriving (Show, Read)
+data Peg = First | Second | Third | None deriving (Show, Read)
 --data Board = Board { First :: [Int], Second :: [Int], Third :: [Int] }
 
 
@@ -135,6 +135,16 @@ doAskMove = do
 
 
 --
+-- TODO | Generic prompt version
+-- TODO | See if Read instances implement validation function
+safeInput :: String -> IO Peg
+safeInput prompt = do
+	putStr prompt
+	input <- getLine
+	if (input `elem` ["First", "Second", "Third"]) then return . read $ input else setCursorColumn 0 >> safeInput prompt
+
+
+--
 -- TODO | recursive implementation in main (?)
 -- TODO | Implement as pure function (strip away IO) (?)
 -- or take IO actions as callbacks for greater flexibility
@@ -158,7 +168,7 @@ runIOTests = do
 	print $ Board [1..5] [] [1..3]
 	print $ isValid First First (Board [1..5] [] [])
 	print $ hasWon (Board [] [] [1..5])
-	(fr, to) <- askMove
+	(fr, to) <- doAskMove
 	print fr
 	print to
 
