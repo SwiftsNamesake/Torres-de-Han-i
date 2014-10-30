@@ -10,7 +10,7 @@
 --        - Variable number of pegs
 --        - Solver, rules and instructions
 --        - GHC build options
---        - Cabal
+--        - Cabal and Haddock
 --        - ASCII art comments and output
 --        - 3D
 --        - Save moves, undo feature
@@ -33,10 +33,10 @@ import System.IO (hFlush, stdout, hSetBuffering, BufferMode)
 import System.Console.ANSI
 
 
+
 -------------------------------------------------------------------------
 -- Game logic (pure)
 -------------------------------------------------------------------------
-
 data Board = Board [Int] [Int] [Int]
 data Peg = First | Second | Third deriving (Show, Read)
 --data Board = Board { First :: [Int], Second :: [Int], Third :: [Int] }
@@ -54,6 +54,7 @@ setPeg :: Peg -> [Int] -> Board -> Board
 setPeg First disks (Board a b c) 	= Board disks b c
 setPeg Second disks (Board a b c) 	= Board a disks c
 setPeg Third disks (Board a b c) 	= Board a b disks
+
 
 -- 
 createGame :: Int -> Board
@@ -83,13 +84,11 @@ isValid frPeg toPeg board = (null to) || (head from < head to)
   	to = choosePeg board toPeg
 
 
-
 -- A board is completed when the first two pegs are empty and the third 
 hasWon :: Board -> Bool
 hasWon (Board a b c) = null a && null b && isSorted c
   where
   	isSorted xs = all (uncurry (<=)) $ zip xs (tail xs)
-
 
 
 --
