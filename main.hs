@@ -38,7 +38,7 @@ import System.Console.ANSI
 -- Game logic (pure)
 -------------------------------------------------------------------------
 data Board = Board [Int] [Int] [Int]
-data Peg = First | Second | Third | None deriving (Show, Read)
+data Peg = First | Second | Third deriving (Show, Read)
 --data Board = Board { First :: [Int], Second :: [Int], Third :: [Int] }
 
 
