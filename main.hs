@@ -17,6 +17,8 @@
 --        - Colours, console cursor
 --        - Cheats
 --        - Gamestate and options type (score, size, etc.)
+--        - BUG: Several victory messages are printed
+--        - BUG: Invalid moves lead to crashes (isValid) (✓)
 
 -- SPEC | -
 --        -
@@ -37,73 +39,6 @@ import System.Console.ANSI
 -------------------------------------------------------------------------
 -- Game logic (pure)
 -------------------------------------------------------------------------
-data Board = Board [Int] [Int] [Int]
-data Peg = First | Second | Third deriving (Show, Read)
---data Board = Board { First :: [Int], Second :: [Int], Third :: [Int] }
-
-
--- Retrieves the disk on the specified peg
-choosePeg :: Board -> Peg -> [Int]
-choosePeg (Board a _ _) First 	= a
-choosePeg (Board _ b _) Second 	= b
-choosePeg (Board _ _ c) Third 	= c
-
-
---
-setPeg :: Peg -> [Int] -> Board -> Board
-setPeg First disks (Board a b c) 	= Board disks b c
-setPeg Second disks (Board a b c) 	= Board a disks c
-setPeg Third disks (Board a b c) 	= Board a b disks
-
-
--- 
-createGame :: Int -> Board
-createGame n = Board [1..n] [] []
-
-
--- Moves a disk between two pegs
--- TODO - Refactor, clarify, comment
-move :: Peg -> Peg -> Board -> Board
-move frPeg toPeg board = setPeg toPeg (head from : to) . setPeg frPeg (tail from) $ board
-  where
-  	from = choosePeg board frPeg
-  	to = choosePeg board toPeg
-
-
--- Moves a disk between two pegs if the 
--- TODO | Signal sucess, Maybe monad (?)
-moveSafe :: Peg -> Peg -> Board -> Board
-moveSafe frPeg toPeg board = if isValid frPeg toPeg board then move frPeg toPeg board else board
-
-
--- Checks if a particular move is valid
-isValid :: Peg -> Peg -> Board -> Bool
-isValid frPeg toPeg board = (null to) || (head from < head to)
-  where
-  	from = choosePeg board frPeg
-  	to = choosePeg board toPeg
-
-
--- A board is completed when the first two pegs are empty and the third 
-hasWon :: Board -> Bool
-hasWon (Board a b c) = null a && null b && isSorted c
-  where
-  	isSorted xs = all (uncurry (<=)) $ zip xs (tail xs)
-
-
---
-padLeft :: Int -> a -> [a] -> [a]
-padLeft sz fill xs = replicate (sz - length xs) fill ++ xs
-
-
---
-instance Show Board where
-	show (Board a b c) = concat . map ((++"\n") . intersperse ' ') . transpose $ map (padLeft size '.' . concat . map show) [a,b,c]
-		where
-			--size = maximum . map length $ [a,b,c]
-			size = maximum $ a ++ b ++ c
-
-
 
 -------------------------------------------------------------------------
 -- Interaction (impure)
@@ -145,7 +80,7 @@ safeInput prompt = do
 	putStr prompt
 	hFlush stdout
 	input <- getLine
-	if (input `elem` ["First", "Second", "Third"]) then return . read $ input else setCursorColumn 0 >> cursorUpLine 1 >> clearLine >> safeInput prompt
+	if input `elem` ["First", "Second", "Third"] then return . read $ input else setCursorColumn 0 >> cursorUpLine 1 >> clearLine >> safeInput prompt
 
 
 --
@@ -164,23 +99,6 @@ run board = do
 
 --run = return $ until hasWon (\ board -> print board >> askMove >>= (\ (fr, to) -> let (IO brd) = moveSafe fr to board in brd)) $ Board [1..5] [] []
 
-
---
-runIOTests :: IO ()
-runIOTests = do
-	print $ createGame 5
-	print $ Board [1..5] [] [1..3]
-	print $ isValid First First (Board [1..5] [] [])
-	print $ hasWon (Board [] [] [1..5])
-	(fr, to) <- doAskMove
-	print fr
-	print to
-
-
---
-runLogicTests :: IO ()
-runLogicTests = do
-	return ()
 
 
 
