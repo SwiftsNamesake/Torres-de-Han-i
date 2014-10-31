@@ -99,8 +99,11 @@ simulate = playIO
 	where
 		display  = InWindow "Simulator" size (25, 25)
 		world 	 = 0
-		render w = return 0
-		handleEvent e w = return $
+		render w = return . translate (-45) (-45) . rectangleSolid 20 $ 20
+		handleEvent ev wd = case ev of
+			EventKey key state mod (a, b) 	-> return 0
+			EventMotion (x, y) 				-> return 0
+			EventResize (w, h)				-> return 0
 		advance t w = return w
 
 
