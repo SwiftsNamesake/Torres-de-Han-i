@@ -85,8 +85,25 @@ window = InWindow "Gloss" size (10, 10)
 
 
 --
+-- TODO | Use records or normal constructor (both?)
+-- TODO | Key map
+data World = World
+	Float		-- Time
+	String		-- Text
+	Path		-- Path
+	(Int, Int)	-- Position
+
+
+--
+mapPair :: (a -> b) -> (a, a) -> (b, b)
+mapPair f (a, b) = (f a, f b)
+
+
+--
 -- The mysterious 'world' type appears to be a simple type variable
 -- TODO | Create custom type or newtype for world (?)
+-- TODO | Separate event handlers (less messy)
+-- TODO | Update size
 simulate :: IO ()
 simulate = playIO
 	display 	--
@@ -98,14 +115,22 @@ simulate = playIO
 	advance 	-- Advances the world to the next simulation step
 	where
 		display  = InWindow "Simulator" size (25, 25)
-		world 	 = 0
-		render w = return . translate (-45) (-45) . rectangleSolid 20 $ 20
-		handleEvent ev wd = case ev of
-			EventKey key state mod (a, b) 	-> return 0
-			EventMotion (x, y) 				-> return 0
-			EventResize (w, h)				-> return 0
-		advance t w = return w
-
+		world 	 = World 0 "X: ? | Y: ?" [] (0, 0)
+		render wd = let World t s path (x', y') = wd in return . pictures $ [
+			translate (-45) (-45)  . rotate (t * 1/4 * 360) . rectangleSolid 45 $ 45,
+			translate (-120) (150) . scale 0.15 0.15 . text $ "X: " ++ show x' ++ " | Y: " ++ show y', -- TODO | printf (?)
+			translate (fromIntegral x') (fromIntegral y') . circleSolid $ 12,
+			color red . line $ path,
+			color blue . line . map (mapPair (+12)) $ path] ++ let (w, h) = mapPair fromIntegral size; (x, y) = mapPair fromIntegral (x', y') in [
+				color red . line $ [(x, h/2), (x, -h/2)],
+				color blue . line $ [(w/2, y), (-w/2, y)] ]
+		handleEvent ev wd@(World t s path p@(x', y')) = case ev of
+			EventKey key state mod (a, b) -> return $ case key of
+				MouseButton LeftButton 	-> World t s (mapPair fromIntegral p : path) p
+				_						-> wd
+			EventMotion (x, y) -> return $ World t s path (floor x, floor y)
+			EventResize (w, h) -> return wd
+		advance t (World t' s path p) = return $ World (t'+t) s path p
 
 
 --
@@ -134,4 +159,5 @@ mainGloss = animate window white $ \dt -> pictures [
 -- Entry point
 -------------------------------------------------------------------------
 main :: IO ()
-main = mainGloss
+main = Render.simulate
+--main = mainGloss
