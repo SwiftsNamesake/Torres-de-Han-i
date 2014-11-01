@@ -27,6 +27,7 @@ import Graphics.Gloss
 import Graphics.Gloss.Data.Picture (line)
 import Graphics.Gloss.Geometry.Angle (degToRad, radToDeg, normaliseAngle)
 import Graphics.Gloss.Interface.IO.Game
+import qualified Data.Map as Map -- (lookup, fromList)
 
 
 
@@ -75,7 +76,6 @@ piechart items r = pictures . snd $ foldl (\ (sum, pict) (θ, clr) -> (sum+θ, w
 --
 slices :: Float -> [Float]
 slices θ = [10-θ, 20+θ, 15, 25-θ, 60+θ, 75, 132, 15, 8]
-
 
 
 --
@@ -177,9 +177,29 @@ mainGloss = animate window white $ \dt -> pictures [
 
 
 
+type KeyMap = Map.Map Event Bool
+data Game = Game
+	String 	-- Name
+	Int 	-- Score
+	KeyMap	--
+
+
 mainHanoi :: IO ()
-mainHanoi = do
-	animate window white $ const (drawBoard $ Board [1..5] [1..5] [1..5])
+mainHanoi = playIO
+	display 	--
+	white 		-- Background colour
+	60			-- FPS (simulation steps per second, technically)
+	world 		-- Initial world
+	render		-- Converts world to Picture
+	handleEvent -- 
+	advance 	-- Advances the world to the next simulation step
+	where
+		display  = InWindow "Simulator" size (25, 25)
+		render wd = return . drawBoard $ Board [1..5] [1..5] [1..5]
+		world = 0
+		handleEvent _ = return
+		advance _ = return
+
 
 
 -------------------------------------------------------------------------
@@ -187,7 +207,7 @@ mainHanoi = do
 -------------------------------------------------------------------------
 main :: IO ()
 main = do
-	image <- loadBMP "C:/Users/Jonatan/Pictures/homer.bmp"
-	--Render.simulate image
 	mainHanoi
+	--image <- loadBMP "C:/Users/Jonatan/Pictures/homer.bmp"
+	--Render.simulate image
 --main = mainGloss
