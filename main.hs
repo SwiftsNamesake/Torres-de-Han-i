@@ -29,11 +29,11 @@
 -------------------------------------------------------------------------
 -- We'll need these
 -------------------------------------------------------------------------
+import Reason
 import Data.List (transpose, intersperse)
 import Data.Char (ord)
 import System.IO (hFlush, stdout, hSetBuffering, BufferMode)
 import System.Console.ANSI
-
 
 
 -------------------------------------------------------------------------
