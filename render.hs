@@ -79,14 +79,19 @@ slices θ = [10-θ, 20+θ, 15, 25-θ, 60+θ, 75, 132, 15, 8]
 
 
 --
+-- TODO | Consistent terminology (w.r.t. peg)
 drawBoard :: Board -> Picture
-drawBoard (Board a b c) = pictures . concat . adjustHorizontal . map renderPeg $ [a, b, c]
+drawBoard (Board a b c) 	= pictures . concat . moveRight . map renderPeg $ [a, b, c]
 	where
-		renderPeg 	= map (\ (n, disk) -> translate 0 (height * fromIntegral n) . color (colour n) . rectangleSolid (20 * fromIntegral disk) $ height) . zip [0..] . reverse
-		adjustHorizontal = map (\ (n, disks) -> map (translate (deltaPeg * fromIntegral n) 0) disks) . zip [0..]
-		colour n 	= if n `mod` 2 == 0 then chartreuse else rose  --
-		height 		= 15 	-- Height of each disk
-		deltaPeg 	= 120	-- Distance between adjacent pegs
+		renderPeg 	= addPole . map renderDisk . zip [0..] . reverse
+		renderDisk  = \ (n, disk) -> translate 0 (height * fromIntegral n) . color (colour n) . rectangleSolid (20 * fromIntegral disk) $ height
+		moveRight 	= map (\ (n, disks) -> map (translate (deltaPeg * fromIntegral n) 0) disks) . zip [0..]
+		addPole		= ((translate 0 (poleHeight/2 - height/2) $ rectangleSolid 10 poleHeight) :)
+		poleHeight 	= height * largest + 25 						-- 
+		colour n 	= if n `mod` 2 == 0 then chartreuse else rose  	-- 
+		height 		= 15 											-- Height of each disk
+		largest 	= fromIntegral . maximum $ 0 : concat [a, b, c] -- Largest disk on the Board (0 if empty)
+		deltaPeg 	= 120											-- Distance between adjacent pegs
 
 
 -------------------------------------------------------------------------
@@ -146,7 +151,7 @@ simulate image = playIO
 				additive 	= makeColor (cos $ 1/160 * 360 * t) (sin $ 1/80 * 360 * t) (0.75) 1.0
 				radiate 	= mixColors 3 7 additive
 				(w, h) 		= mapPair fromIntegral sz
-				radius 		= 40 + 220 * (abs . fromIntegral $ x') / w
+				radius 		= 40 + 220 * (abs $ fromIntegral x') / w
 				transform 	= rotate $ 360 * (fromIntegral y') / h
 			in transform $ piechart (zip (slices θ) $ map radiate palette) radius ]
 		handleEvent ev wd@(World t s path p@(x', y') sz) = case ev of
@@ -177,13 +182,20 @@ mainGloss = animate window white $ \dt -> pictures [
 
 
 
-type KeyMap = Map.Map Event Bool
+type KeyMap = Map.Map Key Bool
 data Game = Game
+	Board
 	String 	-- Name
 	Int 	-- Score
 	KeyMap	--
 
 
+--
+choose :: a -> a -> Bool -> a
+choose a b True	 = a
+choose a b False = b
+
+--
 mainHanoi :: IO ()
 mainHanoi = playIO
 	display 	--
@@ -195,9 +207,21 @@ mainHanoi = playIO
 	advance 	-- Advances the world to the next simulation step
 	where
 		display  = InWindow "Simulator" size (25, 25)
-		render wd = return . drawBoard $ Board [1..5] [1..5] [1..5]
-		world = 0
-		handleEvent _ = return
+		board = createGame 3
+		render (Game bd _ _ km) = do
+			let board = drawBoard bd
+			let keys = map (\ key -> let SpecialKey which = key in (which, Map.findWithDefault False key km)) [SpecialKey KeyUp, SpecialKey KeyDown]
+			let colour = choose black red :: Bool -> Color
+			let rendered = map (\ (n, (key, state)) -> translate (-465) (250-fromIntegral n * 35) . (color $ colour state) . scale 0.2 0.2 . text . show $ key) $ zip [1..] keys -- TODO | Abstract mapping with index
+			return . pictures $ board : rendered
+		world = Game board "Jonatan" 0 $ Map.fromList []
+		handleEvent ev (Game bd nm sc km) = updateKeymap ev (Game bd nm sc km) >>= \ (Game (Board a b c) nm sc km) -> return $ case ev of
+			EventKey (SpecialKey KeyUp) Down _ _ -> Game (Board (drop 1 a) b c) nm sc km
+			EventKey (SpecialKey KeyDown) Down _ _ -> Game (Board b a c) nm sc km
+			_ -> Game (Board a b c) nm sc km
+		updateKeymap ev (Game bd nm sc km) = return $ case ev of
+			EventKey key state _ _ -> Game bd nm sc $ Map.insert key (state == Down) km
+			_ 					   -> Game bd nm sc km
 		advance _ = return
 
 

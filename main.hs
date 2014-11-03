@@ -6,7 +6,8 @@
 -- October 28 2014
 --
 
--- TODO | - More convenient representation (get rid of bloat)
+-- TODO | - Define interface
+--        - More convenient representation (get rid of bloat)
 --        - Variable number of pegs
 --        - Solver, rules and instructions
 --        - GHC build options
@@ -25,7 +26,6 @@
 
 
 
-
 -------------------------------------------------------------------------
 -- We'll need these
 -------------------------------------------------------------------------
@@ -36,9 +36,11 @@ import System.IO (hFlush, stdout, hSetBuffering, BufferMode)
 import System.Console.ANSI
 
 
+
 -------------------------------------------------------------------------
 -- Game logic (pure)
 -------------------------------------------------------------------------
+
 
 -------------------------------------------------------------------------
 -- Interaction (impure)
@@ -94,8 +96,11 @@ run board = do
 	setCursorPosition 0 0
 	print board
 	(fr, to) <- doAskMove
-	let next = moveSafe fr to board in if not $ hasWon next then run next else clearScreen >> setCursorPosition 0 0 >> print next
-	putStrLn "Hurrah, you've won!"
+	let next = moveSafe fr to board in if not $ hasWon next then run next else do
+		clearScreen
+		setCursorPosition 0 0
+		print next
+		putStrLn "Hurrah, you've won!"
 
 --run = return $ until hasWon (\ board -> print board >> askMove >>= (\ (fr, to) -> let (IO brd) = moveSafe fr to board in brd)) $ Board [1..5] [] []
 
@@ -106,4 +111,4 @@ run board = do
 -- Entry point
 -------------------------------------------------------------------------
 main :: IO ()
-main = run $ Board [1..5] [] []  -- Board [] [1] [2..5]
+main = run $ Board [] [1..2] [3..5]  -- Board [] [1] [2..5]
