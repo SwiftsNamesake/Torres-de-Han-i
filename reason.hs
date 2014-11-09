@@ -6,7 +6,7 @@
 -- October 31 2014
 --
 
--- TODO | -
+-- TODO | - Board monad (?)
 --        -
 
 -- SPEC | -
