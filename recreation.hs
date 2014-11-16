@@ -27,7 +27,7 @@ import Data.Char (isSpace, isAlpha)
 import Graphics.Gloss
 import Graphics.Gloss.Data.Picture (line)
 import Graphics.Gloss.Geometry.Angle (degToRad, radToDeg, normaliseAngle)
-
+import Graphics.Gloss.Interface.IO.Game
 
 
 -------------------------------------------------------------------------
@@ -60,21 +60,36 @@ loadMap fn = do
 
 
 
--------------------------------------------------------------------------
--- Experimental implementations
--------------------------------------------------------------------------
---groupBy' :: (a -> a -> Bool) -> [a] -> [[a]]
---groupBy' p xs
---	| 
+--
+evade :: IO ()
+evade = playIO
+	display 	--
+	white 		-- Background colour
+	60			-- FPS (simulation steps per second, technically)
+	world 		-- Initial world
+	render		-- Converts world to Picture
+	handleEvent --
+	advance 	-- Advances the world to the next simulation step
+	where
+		display  	= InWindow "Simulator" (740, 540) (25, 25)
+		world 	 	= (0, 0)
+		render wd 	= return $ dotGrid 20 20 12 (\ x y -> abs . (12-) . (*0.35) . sqrt $ (x - fst wd)**2 + (y - snd wd)**2)
+		handleEvent ev wd@(x,y) = return $ case ev of
+			EventMotion pos -> pos
+			_ 				-> wd
+		advance t wd@(x, y) 	= return wd
+
+		grid f rws cls			= [f r c | r <- [1..rws], c <- [1..cls] ] -- TODO | Zero-index (?)
+		dotGrid rws cls pad sz 	= pictures $ grid (\ r c -> color (makeColor (sin (r*pad*1/8)) (cos (c*pad*1/8)) 0.86 1.0)
+																. translate (c*pad) (r*pad) $ circleSolid (sz (c*pad) (r*pad) )) rws cls
 
 
 
--------------------------------------------------------------------------
--- Entry point
--------------------------------------------------------------------------
-main :: IO ()
-main = do
-	markers <- loadMap $ ["sweden.txt", "generated.txt", "norway.txt", "suomi.txt"] !! 3
+
+--
+renderMaps :: IO ()
+renderMaps = do
+	markers <- loadMap $ ["sweden.txt", "generated.txt", "norway.txt", "suomi.txt"] !! 1
 	animate window white $ render markers
 	where
 		window 				= [ InWindow "Cartographer" size (25, 25), FullScreen (450, 450)] !! 0
@@ -91,3 +106,17 @@ main = do
 																. translate (c*pad) (r*pad) $ circleSolid (5 + 3 * (sin $ c*pad*0.75))) rws cls
 		spiral = pictures [color (makeColor (sin $ n*0.15) (sin $ 0.05*n) 1.0 1.0) . rotate (n*5) . translate (n*2) 0 $ circleSolid (5 + 5 * sin (n*0.02)) | n <- [1..320]]
 		 --spiral, complex numbers, fibonacci
+-------------------------------------------------------------------------
+-- Experimental implementations
+-------------------------------------------------------------------------
+--groupBy' :: (a -> a -> Bool) -> [a] -> [[a]]
+--groupBy' p xs
+--	| 
+
+
+
+-------------------------------------------------------------------------
+-- Entry point
+-------------------------------------------------------------------------
+main :: IO ()
+main = evade

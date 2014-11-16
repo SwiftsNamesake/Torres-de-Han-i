@@ -20,6 +20,8 @@
 --        - Gamestate and options type (score, size, etc.)
 --        - BUG: Several victory messages are printed
 --        - BUG: Invalid moves lead to crashes (isValid) (✓)
+--        - Separate polymorphic prompt function (?)
+--        - Unified drawGame action (board, score, etc.)
 
 -- SPEC | -
 --        -
@@ -42,6 +44,22 @@ import System.Console.ANSI
 -------------------------------------------------------------------------
 
 
+
+-------------------------------------------------------------------------
+-- Auxiliary functions
+-------------------------------------------------------------------------
+
+-- Validates move input
+validInput :: String -> Bool
+validInput = flip elem ["First", "Second", "Third"]
+
+
+-- Assuming p, do action A, else do action B (ternary operator as function)
+-- TODO | Rename (?)
+assuming :: Bool -> a -> a -> a
+assuming p a b = if p then a else b
+
+
 -------------------------------------------------------------------------
 -- Interaction (impure)
 -------------------------------------------------------------------------
@@ -56,7 +74,7 @@ askMove :: IO (Peg, Peg)
 askMove = 	putStrF "From: " >>							-- Prompt user for first choice (from)
 			getLine >>= 								-- Read the choice as a string
 			(\fr -> putStrF "To: " >> return fr) >>= 	-- Prompt user for second choice (to)
-			(\ fr -> getLine >>= (\ toStr -> return (read fr, read toStr) ))
+			(\fr -> getLine >>= (\ toStr -> return (read fr, read toStr) ))
 			  where
 			  	putStrF str = putStr str >> hFlush stdout -- Console is line buffered in interactive mode
 
@@ -73,7 +91,7 @@ doAskMove = do
 	return (fr, to) -- 
 
 
---
+--	
 -- TODO | Generic prompt version
 -- TODO | See if Read instances implement validation function
 -- TODO | Error message (see askUntil in Python)
@@ -82,11 +100,18 @@ safeInput prompt = do
 	putStr prompt
 	hFlush stdout
 	input <- getLine
-	if input `elem` ["First", "Second", "Third"] then return . read $ input else setCursorColumn 0 >> cursorUpLine 1 >> clearLine >> safeInput prompt
+	if validInput input
+		then return $ read input
+		else askAgain
+	where askAgain = do
+			setCursorColumn 0
+			cursorUpLine 1
+			clearLine
+			safeInput prompt
 
 
 --
--- TODO | recursive implementation in main (?)
+-- TODO | Recursive implementation in main (?)
 -- TODO | Implement as pure function (strip away IO) (?)
 -- or take IO actions as callbacks for greater flexibility
 -- eg. run :: Board -> [(Peg, Peg)] -> Board

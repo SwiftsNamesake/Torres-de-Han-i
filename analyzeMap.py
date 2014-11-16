@@ -43,6 +43,7 @@ def silhouette(fn, colour):
 
 	'''
 	Docstring goes here
+	
 	'''
 
 	return None
@@ -53,6 +54,7 @@ def placeTiles(root, fn, colour):
 
 	'''
 	Docstring goes here
+
 	'''
 
 	return None
@@ -64,8 +66,8 @@ def placeMarkers(root, fn, colour):
 	'''
 	Interactively placing markers on
 	an image and returning their coordinates
-	'''
 
+	'''
 
 	def onClick(event):
 		# onSubmit
@@ -140,7 +142,8 @@ def saveMarkers(fn, markers):
 def main():
 	
 	'''
-
+	Docstring goes here
+	
 	'''
 
 	root = Tk()
