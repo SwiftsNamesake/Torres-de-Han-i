@@ -73,7 +73,7 @@ evade = playIO
 	where
 		display  	= InWindow "Simulator" (740, 540) (25, 25)
 		world 	 	= (0, 0)
-		render wd 	= return $ dotGrid 20 20 12 (\ x y -> abs . (12-) . (*0.35) . sqrt $ (x - fst wd)**2 + (y - snd wd)**2)
+		render wd 	= return $ dotGrid 20 20 20 (\ x y -> (\ x -> if x < 2 then 2 else x) . (10-) . (*0.05) . sqrt $ (x - fst wd)**2 + (y - snd wd)**2)
 		handleEvent ev wd@(x,y) = return $ case ev of
 			EventMotion pos -> pos
 			_ 				-> wd
