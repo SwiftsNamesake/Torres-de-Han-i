@@ -106,6 +106,9 @@ renderMaps = do
 																. translate (c*pad) (r*pad) $ circleSolid (5 + 3 * (sin $ c*pad*0.75))) rws cls
 		spiral = pictures [color (makeColor (sin $ n*0.15) (sin $ 0.05*n) 1.0 1.0) . rotate (n*5) . translate (n*2) 0 $ circleSolid (5 + 5 * sin (n*0.02)) | n <- [1..320]]
 		 --spiral, complex numbers, fibonacci
+
+
+
 -------------------------------------------------------------------------
 -- Experimental implementations
 -------------------------------------------------------------------------
